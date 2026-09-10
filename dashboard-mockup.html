@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Best Bets Dashboard Mockup v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e1117;
+    --card: #171b23;
+    --card-border: #262b36;
+    --text: #e6e8eb;
+    --muted: #8b93a1;
+    --accent: #35c37a;
+    --accent-dim: #1f6e46;
+    --gold: #d9a441;
+    --err: #e05252;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 40px 24px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .header h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px 0; }
+  .header p { color: var(--muted); font-size: 13px; margin: 0; }
+  .header .meta-line { margin-top: 4px; color: #5c6472; }
+
+  .section { margin-top: 32px; }
+  .section h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .empty-state {
+    color: #5c6472;
+    font-size: 13px;
+    font-style: italic;
+    padding: 10px 2px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .card.double { border-left-color: var(--gold); }
+  .card.flagged { border-left-color: var(--err); }
+  .card.starred { border-left-color: var(--gold); box-shadow: 0 0 0 1px rgba(217,164,65,0.35); }
+
+  .star-tag {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .matchup { font-size: 13px; font-weight: 600; margin-bottom: 1px; padding-right: 70px; }
+  .meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+
+  .pick-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .pick-side { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+  .pick-number { font-size: 19px; font-weight: 800; }
+  .pick-odds { font-size: 11px; color: var(--muted); }
+
+  .stats { display: flex; gap: 12px; margin-bottom: 8px; }
+  .stat { text-align: left; }
+  .stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; }
+  .stat-value { font-size: 13px; font-weight: 700; }
+  .grade-b { color: var(--accent); }
+  .grade-a { color: var(--gold); }
+
+  .badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  a.badge {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(53, 195, 122, 0.12);
+    color: var(--accent);
+    border: 1px solid var(--accent-dim);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  a.badge.gold { background: rgba(217, 164, 65, 0.12); color: var(--gold); border-color: rgba(217, 164, 65, 0.4); }
+  a.badge.warn { background: rgba(224, 76, 76, 0.14); color: var(--err); border-color: rgba(224, 76, 76, 0.5); }
+  a.badge:hover { filter: brightness(1.25); }
+
+  .glossary { max-width: 900px; margin: 44px auto 0 auto; border-top: 1px solid var(--card-border); padding-top: 24px; }
+  .glossary h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .glossary-item { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; scroll-margin-top: 20px; }
+  .glossary-item.error-item { border-color: rgba(224, 76, 76, 0.35); }
+  .glossary-item h3 { font-size: 14px; margin: 0 0 6px 0; }
+  .glossary-item .qualifies { font-size: 13px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+  .glossary-item .track-record { font-size: 13px; color: var(--accent); font-weight: 600; }
+  .glossary-item.error-item .track-record { color: var(--err); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>This Week's Best Bets</h1>
+    <p>NFL Week 1 &middot; top 4 per bet type &middot; ranked by historical segment strength</p>
+    <p class="meta-line">Last Read: Wed, Sep 9, 2026 &middot; 8:14 PM ET &nbsp;|&nbsp; Next Read: Wed, Sep 16, 2026</p>
+  </div>
+
+  <div class="section">
+    <h2>Spread</h2>
+    <div class="empty-state">No qualifying Spread bets this week. No validated Spread segment exists yet, every Spread pattern tested so far failed the season-by-season re-check.</div>
+  </div>
+
+  <div class="section">
+    <h2>Total</h2>
+    <div class="grid">
+
+      <div class="card double flagged">
+        <div class="matchup">NY Jets @ Tennessee Titans</div>
+        <div class="meta">Sat 9/13 &middot; 1:00 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">OVER</span>
+          <span class="pick-number">39.5</span>
+          <span class="pick-odds">-109</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">80%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+27.8%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-big-edge" class="badge gold">Big Edge</a>
+          <a href="#glossary-graded-b" class="badge gold">Graded B</a>
+          <a href="#glossary-sl-error" class="badge warn">&#9888; Error?</a>
+        </div>
+      </div>
+
+      <div class="card double">
+        <div class="matchup">Cleveland Browns @ Jacksonville Jaguars</div>
+        <div class="meta">Sat 9/13 &middot; 1:00 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">OVER</span>
+          <span class="pick-number">40.5</span>
+          <span class="pick-odds">-112</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">63%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+10.2%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-big-edge" class="badge gold">Big Edge</a>
+          <a href="#glossary-graded-b" class="badge gold">Graded B</a>
+        </div>
+      </div>
+
+      <div class="card double">
+        <div class="matchup">Denver Broncos @ Kansas City Chiefs</div>
+        <div class="meta">Mon 9/14 &middot; 8:15 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">UNDER</span>
+          <span class="pick-number">43.5</span>
+          <span class="pick-odds">-113</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">63%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+9.9%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-big-edge" class="badge gold">Big Edge</a>
+          <a href="#glossary-graded-b" class="badge gold">Graded B</a>
+        </div>
+      </div>
+
+      <div class="card double">
+        <div class="matchup">Dallas Cowboys @ New York Giants</div>
+        <div class="meta">Sun 9/13 &middot; 8:20 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">OVER</span>
+          <span class="pick-number">48.5</span>
+          <span class="pick-odds">-106</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">60%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+8.5%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-big-edge" class="badge gold">Big Edge</a>
+          <a href="#glossary-graded-b" class="badge gold">Graded B</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Moneyline</h2>
+    <div class="grid">
+
+      <div class="card starred">
+        <div class="star-tag">&#9733; LOVE THIS ONE</div>
+        <div class="matchup">New England Patriots @ Seattle Seahawks</div>
+        <div class="meta">Wed 9/9 &middot; 8:20 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">PICK</span>
+          <span class="pick-number" style="font-size:15px;">Seattle Seahawks</span>
+          <span class="pick-odds">-182</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">74%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+9.5%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-home-fav-ml" class="badge gold">Home Favorite ML</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="matchup">Buffalo Bills @ Houston Texans</div>
+        <div class="meta">Sat 9/13 &middot; 1:00 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">PICK</span>
+          <span class="pick-number" style="font-size:15px;">Houston Texans</span>
+          <span class="pick-odds">-102</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-a">A</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">60%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+9.5%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-home-fav-ml" class="badge gold">Home Favorite ML</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="matchup">Green Bay Packers @ Minnesota Vikings</div>
+        <div class="meta">Sat 9/13 &middot; 4:25 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">PICK</span>
+          <span class="pick-number" style="font-size:15px;">Minnesota Vikings</span>
+          <span class="pick-odds">-119</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">B</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">61%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+6.7%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-home-fav-ml" class="badge gold">Home Favorite ML</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="matchup">Atlanta Falcons @ Pittsburgh Steelers</div>
+        <div class="meta">Sat 9/13 &middot; 1:00 PM</div>
+        <div class="pick-row">
+          <span class="pick-side">PICK</span>
+          <span class="pick-number" style="font-size:15px;">Pittsburgh Steelers</span>
+          <span class="pick-odds">-183</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Grade</div><div class="stat-value grade-b">C</div></div>
+          <div class="stat"><div class="stat-label">Sim</div><div class="stat-value">66%</div></div>
+          <div class="stat"><div class="stat-label">Edge</div><div class="stat-value">+1.3%</div></div>
+        </div>
+        <div class="badges">
+          <a href="#glossary-home-fav-ml" class="badge gold">Home Favorite ML</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="glossary">
+    <h2>Why These Picks Are Here</h2>
+
+    <div class="glossary-item" id="glossary-home-fav-ml">
+      <h3>Home Favorite ML</h3>
+      <div class="qualifies">Qualifies when: the bet is a Moneyline, the model's pick is the home team, and the odds are between -100 and -300.</div>
+      <div class="track-record">Since 2024: 98 bets, 77.6% win rate, +22.9% ROI</div>
+    </div>
+
+    <div class="glossary-item" id="glossary-big-edge">
+      <h3>Big Edge</h3>
+      <div class="qualifies">Qualifies when: the bet is a Total, and the model's Sim Probability is 4.0 percentage points or more above what the market's odds imply.</div>
+      <div class="track-record">Since 2024: 217 bets, 57.1% win rate, +9.1% ROI</div>
+    </div>
+
+    <div class="glossary-item" id="glossary-graded-b">
+      <h3>Graded B</h3>
+      <div class="qualifies">Qualifies when: the bet is a Total, and SportsLine's own model gave the pick a letter grade of B.</div>
+      <div class="track-record">Since 2024: 111 bets, 58.6% win rate, +11.5% ROI</div>
+    </div>
+
+    <div class="glossary-item error-item" id="glossary-sl-error">
+      <h3>&#9888; Potential Sportsline Error</h3>
+      <div class="qualifies">Not a proven segment, this is a data-quality caution. Fires when a row's Edge % is 20 points or more in either direction, well outside the range any validated segment actually covers. Usually means a scraper misread a line or matched the wrong team. The pick still counts toward its ranking, just double-check it before betting.</div>
+      <div class="track-record">Threshold: |Edge %| &ge; 20</div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
