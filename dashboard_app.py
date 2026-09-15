@@ -23,6 +23,7 @@ SCOPES = [
 
 ERROR_EDGE_THRESHOLD = 20.0
 SECTIONS = ["Spread", "Total", "Moneyline"]
+SEASON_START = pd.Timestamp(2026, 9, 9)
 
 # Columns dropped entirely from card display: always-blank grading/tracking
 # columns (unused until Phase 6.6) plus Confidence, which is always just
@@ -499,37 +500,51 @@ if df.empty:
 else:
     df["NFL Week"] = pd.to_numeric(df["NFL Week"], errors="coerce")
     df["_result"] = df["Result"].map(normalize_result) if "Result" in df.columns else ""
+    df["_date"] = pd.to_datetime(df["Date"], format="%m/%d/%Y", errors="coerce")
+    df["_edge_num"] = pd.to_numeric(df["Edge %"], errors="coerce")
+    df["_score"] = df.apply(score_row, axis=1)
+    df["_flags"] = df.apply(row_matched_flags, axis=1)
+    df["_kickoff"] = df.apply(_kickoff_key, axis=1)
 
-    # Completed section covers every graded pick in the tab, across all weeks.
-    completed_df = df[df["_result"] != ""].copy()
+    # Only the current season counts, for both the grids and the tracker.
+    df = df[df["_date"] >= SEASON_START].copy()
+
+    # A pick is "displayed" if it ranked top 4 for its bet type within its
+    # week. Ranking runs over every row in the week, graded or not, so a
+    # graded pick drops out of the grid without a lower-ranked pick moving
+    # up to replace it. That keeps the tracked picks identical to what the
+    # dashboard actually showed.
+    displayed_idx = []
+    for _, wk in df.groupby("NFL Week"):
+        for bet_type in SECTIONS:
+            subset = wk[(wk["Bet Type"] == bet_type) & (wk["_score"] > 0)]
+            subset = subset.sort_values(
+                by=["_score", "_edge_num", "_kickoff"], ascending=[False, False, True]
+            )
+            displayed_idx.extend(subset.head(4).index)
+    displayed_df = df.loc[displayed_idx]
+
+    completed_df = displayed_df[displayed_df["_result"] != ""].copy()
     completed_df["_payout"] = completed_df.apply(
         lambda r: payout_units(r["_result"], r.get("Odds", "")), axis=1
     )
-    completed_df["_kickoff"] = completed_df.apply(_kickoff_key, axis=1)
     completed_df = completed_df.sort_values(
         by=["NFL Week", "_kickoff", "Bet Type"], ascending=[False, True, True]
     )
 
     current_week = df["NFL Week"].max()
-    # Top card grids only ever show picks that have not been graded yet.
-    week_df = df[(df["NFL Week"] == current_week) & (df["_result"] == "")].drop(
-        columns=["NFL Week"], errors="ignore"
-    )
+    # Top card grids only ever show displayed picks that have not been graded yet.
+    week_df = displayed_df[
+        (displayed_df["NFL Week"] == current_week) & (displayed_df["_result"] == "")
+    ]
     week_df = week_df.drop(columns=[c for c in DROPPED_COLUMNS if c in week_df.columns])
 
-    week_df["_edge_num"] = pd.to_numeric(week_df["Edge %"], errors="coerce")
-    week_df["_score"] = week_df.apply(score_row, axis=1)
-    week_df["_flags"] = week_df.apply(row_matched_flags, axis=1)
-    week_df["_kickoff"] = week_df.apply(_kickoff_key, axis=1)
-
-    def top4_for(bet_type: str) -> pd.DataFrame:
-        subset = week_df[(week_df["Bet Type"] == bet_type) & (week_df["_score"] > 0)]
-        subset = subset.sort_values(
+    section_dfs = {
+        name: week_df[week_df["Bet Type"] == name].sort_values(
             by=["_score", "_edge_num", "_kickoff"], ascending=[False, False, True]
         )
-        return subset.head(4)
-
-    section_dfs = {name: top4_for(name) for name in SECTIONS}
+        for name in SECTIONS
+    }
 
     # Part 4: single gold star across all displayed cards, excluding any
     # card carrying the red error chip.
@@ -551,7 +566,8 @@ else:
     last_read_str = modified_dt_et.strftime("%a, %b %-d, %Y · %-I:%M %p ET")
     next_read_str = next_read_dt.strftime("%a, %b %-d, %Y")
 
-    st.caption(f"NFL Week {int(current_week)} · top 4 per bet type · ranked by historical segment strength")
+    week_label = f"NFL Week {int(current_week)}" if pd.notna(current_week) else "No games this season yet"
+    st.caption(f"{week_label} · top 4 per bet type · ranked by historical segment strength")
     st.markdown(
         f'<p style="margin-top: -8px; color: #5c6472; font-size: 13px;">'
         f"Last Read: {last_read_str} &nbsp;|&nbsp; Next Read: {next_read_str}</p>",
