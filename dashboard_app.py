@@ -187,6 +187,33 @@ st.markdown(
     a.bb-badge.warn { background: rgba(224, 76, 76, 0.14); color: var(--err); border: 1px solid rgba(224, 76, 76, 0.5); }
     a.bb-badge:hover { filter: brightness(1.25); }
 
+    .bb-results { max-width: 900px; margin: 44px auto 0 auto; border-top: 1px solid var(--card-border); padding-top: 24px; }
+    .bb-results h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .bb-results-summary { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
+    .bb-results-summary .pos { color: var(--accent); }
+    .bb-results-summary .neg { color: var(--err); }
+    .bb-result-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--card-border);
+        font-size: 12px;
+        color: var(--text);
+    }
+    .bb-result-row:last-child { border-bottom: none; }
+    .bb-result-matchup { flex: 2.2; font-weight: 600; min-width: 0; }
+    .bb-result-type { flex: 0.9; color: var(--muted); }
+    .bb-result-pick { flex: 1.6; }
+    .bb-result-pick .odds { color: var(--muted); margin-left: 4px; }
+    .bb-result-stat { flex: 0.6; color: var(--muted); }
+    .bb-result-stat b { color: var(--text); font-weight: 700; }
+    .bb-result-tag { flex: 0 0 48px; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; border-radius: 20px; }
+    .bb-result-tag.win { background: rgba(53, 195, 122, 0.14); color: var(--accent); border: 1px solid rgba(53, 195, 122, 0.5); }
+    .bb-result-tag.loss { background: rgba(224, 76, 76, 0.14); color: var(--err); border: 1px solid rgba(224, 76, 76, 0.5); }
+    .bb-result-tag.push { background: rgba(139, 147, 161, 0.14); color: var(--muted); border: 1px solid rgba(139, 147, 161, 0.5); }
+    .bb-result-list { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; }
+
     .bb-glossary { max-width: 900px; margin: 44px auto 0 auto; border-top: 1px solid var(--card-border); padding-top: 24px; }
     .bb-glossary h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
     .bb-glossary-item { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; scroll-margin-top: 20px; }
@@ -376,6 +403,65 @@ def build_section_html(section_name: str, section_df: pd.DataFrame, star_key) ->
     return "".join(parts)
 
 
+RESULT_VALUES = ["Win", "Loss", "Push"]
+
+
+def normalize_result(value) -> str:
+    """Return "Win"/"Loss"/"Push" for a filled Result cell, or "" if blank."""
+    text = str(value if value is not None else "").strip().title()
+    return text if text in RESULT_VALUES else ""
+
+
+def payout_units(result: str, odds) -> float:
+    """Units returned on a 1-unit risk, ignoring the sheet's Units Risked."""
+    if result == "Loss":
+        return -1.0
+    if result == "Win":
+        odds_num = pd.to_numeric(str(odds).strip(), errors="coerce")
+        if pd.isna(odds_num) or odds_num == 0:
+            return 0.0
+        return odds_num / 100 if odds_num > 0 else 100 / abs(odds_num)
+    return 0.0
+
+
+def build_results_html(completed_df: pd.DataFrame) -> str:
+    if completed_df.empty:
+        return ""
+    wins = int((completed_df["_result"] == "Win").sum())
+    losses = int((completed_df["_result"] == "Loss").sum())
+    pushes = int((completed_df["_result"] == "Push").sum())
+    total_units = completed_df["_payout"].sum()
+    pct = total_units / len(completed_df) * 100
+    sign_class = "pos" if total_units > 0 else "neg" if total_units < 0 else ""
+
+    rows_html = ""
+    for _, row in completed_df.iterrows():
+        result = row["_result"]
+        line = str(row.get("Line", "")).strip()
+        pick_text = str(row.get("Pick", "")).strip()
+        if line:
+            pick_text += f" {line}"
+        rows_html += "".join([
+            '<div class="bb-result-row">',
+            f'<div class="bb-result-matchup">{row.get("Away Team", "")} @ {row.get("Home Team", "")}</div>',
+            f'<div class="bb-result-type">{row.get("Bet Type", "")}</div>',
+            f'<div class="bb-result-pick">{pick_text}<span class="odds">{row.get("Odds", "")}</span></div>',
+            f'<div class="bb-result-stat">Grade <b>{str(row.get("Grade", "")).strip()}</b></div>',
+            f'<div class="bb-result-stat">Edge <b>{row.get("Edge %", "")}%</b></div>',
+            f'<div class="bb-result-tag {result.lower()}">{result}</div>',
+            "</div>",
+        ])
+
+    return "".join([
+        '<div class="bb-results">',
+        "<h2>Completed Picks</h2>",
+        f'<div class="bb-results-summary">Record: {wins}-{losses}-{pushes} (W-L-P) &nbsp;·&nbsp; '
+        f'Return: <span class="{sign_class}">{total_units:+.2f} units ({pct:+.1f}%)</span></div>',
+        f'<div class="bb-result-list">{rows_html}</div>',
+        "</div>",
+    ])
+
+
 def build_glossary_html(used_labels: list[str]) -> str:
     if not used_labels:
         return ""
@@ -412,8 +498,23 @@ if df.empty:
     st.info("No bets found in the Best Bets tab.")
 else:
     df["NFL Week"] = pd.to_numeric(df["NFL Week"], errors="coerce")
+    df["_result"] = df["Result"].map(normalize_result) if "Result" in df.columns else ""
+
+    # Completed section covers every graded pick in the tab, across all weeks.
+    completed_df = df[df["_result"] != ""].copy()
+    completed_df["_payout"] = completed_df.apply(
+        lambda r: payout_units(r["_result"], r.get("Odds", "")), axis=1
+    )
+    completed_df["_kickoff"] = completed_df.apply(_kickoff_key, axis=1)
+    completed_df = completed_df.sort_values(
+        by=["NFL Week", "_kickoff", "Bet Type"], ascending=[False, True, True]
+    )
+
     current_week = df["NFL Week"].max()
-    week_df = df[df["NFL Week"] == current_week].drop(columns=["NFL Week"], errors="ignore")
+    # Top card grids only ever show picks that have not been graded yet.
+    week_df = df[(df["NFL Week"] == current_week) & (df["_result"] == "")].drop(
+        columns=["NFL Week"], errors="ignore"
+    )
     week_df = week_df.drop(columns=[c for c in DROPPED_COLUMNS if c in week_df.columns])
 
     week_df["_edge_num"] = pd.to_numeric(week_df["Edge %"], errors="coerce")
@@ -471,6 +572,10 @@ else:
                 if "Potential Sportsline Error" not in used_labels:
                     used_labels.append("Potential Sportsline Error")
 
+    results_html = build_results_html(completed_df)
     glossary_html = build_glossary_html(used_labels)
 
-    st.markdown(f'<div class="bb-wrap">{sections_html}</div>{glossary_html}', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="bb-wrap">{sections_html}</div>{results_html}{glossary_html}',
+        unsafe_allow_html=True,
+    )
