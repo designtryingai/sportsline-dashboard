@@ -103,126 +103,119 @@ st.set_page_config(page_title="Best Bets", layout="wide")
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap');
-
-    html, body, [class*="css"], [class*="st-"], .stApp, .stApp * {
-        font-family: 'Open Sans', sans-serif !important;
-    }
-
-    .stApp {
-        background-color: #0e1117;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
     :root {
-        --card: #171b23;
-        --card-border: #262b36;
-        --text: #e6e8eb;
-        --muted: #8b93a1;
-        --accent: #35c37a;
-        --accent-dim: #1f6e46;
-        --gold: #d9a441;
-        --err: #e05252;
+        --bg: #10140F;
+        --text: #E7E3D8;
+        --muted: #8A8577;
+        --rule: #33392E;
+        --rule-soft: #23281F;
+        --pos: #3FCB77;
+        --neg: #5E86BD;
+        --caution: #B37A50;
+        --sans: 'Archivo', system-ui, sans-serif;
+        --display: 'Big Shoulders Display', 'Archivo', sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, monospace;
+        --cols: 230px 86px 120px 56px 46px 52px 62px minmax(0, 1fr);
     }
 
-    .bb-wrap { max-width: 900px; margin: 0 auto; }
+    html, body, [class*="css"], [class*="st-"], .stApp, .stApp * {
+        font-family: var(--sans) !important;
+    }
+    .stApp { background-color: var(--bg); }
 
-    .bb-section { margin-top: 32px; }
+    /* Streamlit's own chrome, hidden so the page reads as one design. */
+    #MainMenu, header, footer { visibility: hidden; }
+    .block-container { padding-top: 2rem; }
+
+    .bb-wrap { max-width: 1080px; margin: 0 auto; }
+
+    /* ---- page header ---- */
+    .bb-head {
+        display: flex; align-items: flex-end; justify-content: space-between;
+        border-bottom: 2px solid var(--rule); padding-bottom: 14px; margin-bottom: 30px;
+    }
+    .bb-head h1 {
+        font-family: var(--display) !important; font-weight: 800; font-size: 46px;
+        line-height: 1; margin: 0; color: var(--text);
+    }
+    .bb-head .bb-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .bb-stamp { text-align: right; font-family: var(--mono) !important; font-size: 11px; color: var(--muted); }
+    .bb-stamp .next { color: var(--caution); }
+
+    /* ---- sections ---- */
+    .bb-section { margin-top: 30px; }
     .bb-section h2 {
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--muted);
-        border-bottom: 1px solid var(--card-border);
-        padding-bottom: 8px;
-        margin-bottom: 14px;
+        font-family: var(--display) !important; font-weight: 700; font-size: 24px;
+        color: var(--text); margin: 0 0 6px 0; letter-spacing: 0;
     }
-    .bb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .bb-empty-state { color: #5c6472; font-size: 13px; font-style: italic; padding: 10px 2px; }
-
-    .bb-card {
-        background: var(--card);
-        border: 1px solid var(--card-border);
-        border-left: 4px solid var(--accent-dim);
-        border-radius: 10px;
-        padding: 14px 16px;
-        position: relative;
-    }
-    .bb-card.double { border-left-color: var(--gold); }
-    .bb-card.flagged { border-left-color: var(--err); }
-    .bb-card.starred { border-left-color: var(--gold); box-shadow: 0 0 0 1px rgba(217,164,65,0.35); }
-
-    .bb-star-tag {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-        font-size: 10px;
-        font-weight: 700;
-        color: var(--gold);
+    .bb-empty-state {
+        font-size: 13px; line-height: 1.5; color: var(--muted);
+        border-left: 2px solid var(--rule); padding-left: 12px; max-width: 620px;
     }
 
-    .bb-matchup { font-size: 13px; font-weight: 600; margin-bottom: 1px; padding-right: 70px; color: var(--text); }
-    .bb-meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
-
-    .bb-pick-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-    .bb-pick-side { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
-    .bb-pick-number { font-size: 19px; font-weight: 800; color: var(--text); }
-    .bb-pick-odds { font-size: 11px; color: var(--muted); }
-
-    .bb-stats { display: flex; gap: 12px; margin-bottom: 8px; }
-    .bb-stat { text-align: left; }
-    .bb-stat-label { font-size: 9px; color: var(--muted); text-transform: uppercase; }
-    .bb-stat-value { font-size: 13px; font-weight: 700; color: var(--text); }
-    .bb-grade-b { color: var(--accent); }
-    .bb-grade-a { color: var(--gold); }
-
-    .bb-badges { display: flex; gap: 5px; flex-wrap: wrap; }
-    a.bb-badge {
-        font-size: 9px;
-        padding: 2px 7px;
-        border-radius: 20px;
-        font-weight: 600;
-        text-decoration: none;
-        cursor: pointer;
+    /* ---- pick rows ---- */
+    .bb-colhead {
+        display: grid; grid-template-columns: var(--cols); gap: 10px;
+        padding: 6px 0 7px 0; border-bottom: 1px solid var(--rule);
+        font-size: 11px; color: var(--muted);
     }
-    a.bb-badge.gold { background: rgba(217, 164, 65, 0.12); color: var(--gold); border: 1px solid rgba(217, 164, 65, 0.4); }
-    a.bb-badge.warn { background: rgba(224, 76, 76, 0.14); color: var(--err); border: 1px solid rgba(224, 76, 76, 0.5); }
-    a.bb-badge:hover { filter: brightness(1.25); }
+    .bb-row {
+        display: grid; grid-template-columns: var(--cols); gap: 10px;
+        align-items: center; padding: 9px 0; border-bottom: 1px solid var(--rule-soft);
+    }
+    .bb-row.starred {
+        border-left: 2px solid var(--pos); padding-left: 10px; margin-left: -12px;
+    }
+    .bb-matchup { font-size: 13px; color: var(--text); }
+    .bb-subline { font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .bb-topline { font-size: 11px; color: var(--pos); margin-top: 1px; }
+    .bb-kick { font-family: var(--mono) !important; font-size: 12px; color: var(--muted); }
+    .bb-pick { font-family: var(--mono) !important; font-size: 14px; font-weight: 600; color: var(--text); }
+    .bb-num { font-family: var(--mono) !important; font-size: 13px; color: var(--text); text-align: right; }
+    .bb-num.dim { color: var(--muted); }
+    .bb-seg { display: flex; flex-direction: column; gap: 3px; }
+    .bb-seg-line { font-size: 12px; white-space: nowrap; }
+    .bb-seg-line .roi { font-family: var(--mono) !important; font-size: 12px; color: var(--pos); margin-left: 6px; }
+    a.bb-seg-name {
+        color: var(--pos); text-decoration: none; border-bottom: 1px solid var(--rule);
+    }
+    a.bb-seg-name:hover { color: #6FE09B; border-bottom-color: var(--pos); }
+    .bb-caution { font-family: var(--mono) !important; font-size: 11px; color: var(--caution); }
 
-    .bb-results { max-width: 900px; margin: 44px auto 0 auto; border-top: 1px solid var(--card-border); padding-top: 24px; }
-    .bb-results h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .bb-results-summary { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; }
-    .bb-results-summary .pos { color: var(--accent); }
-    .bb-results-summary .neg { color: var(--err); }
+    /* ---- completed picks ---- */
+    .bb-results { max-width: 1080px; margin: 34px auto 0 auto; border-top: 2px solid var(--rule); padding-top: 16px; }
+    .bb-results h2 { font-family: var(--display) !important; font-weight: 700; font-size: 24px; color: var(--text); margin: 0 0 4px 0; }
+    .bb-results-summary { font-family: var(--mono) !important; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .bb-results-summary .pos { color: var(--pos); }
+    .bb-results-summary .neg { color: var(--neg); }
     .bb-result-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--card-border);
-        font-size: 12px;
-        color: var(--text);
+        display: grid; grid-template-columns: 230px 86px 176px 46px 62px minmax(0, 1fr);
+        gap: 10px; align-items: center; padding: 8px 0;
+        border-bottom: 1px solid var(--rule-soft); font-size: 13px; color: var(--text);
     }
     .bb-result-row:last-child { border-bottom: none; }
-    .bb-result-matchup { flex: 2.2; font-weight: 600; min-width: 0; }
-    .bb-result-type { flex: 0.9; color: var(--muted); }
-    .bb-result-pick { flex: 1.6; }
-    .bb-result-pick .odds { color: var(--muted); margin-left: 4px; }
-    .bb-result-stat { flex: 0.6; color: var(--muted); }
-    .bb-result-stat b { color: var(--text); font-weight: 700; }
-    .bb-result-tag { flex: 0 0 48px; text-align: center; font-size: 10px; font-weight: 700; padding: 2px 0; border-radius: 20px; }
-    .bb-result-tag.win { background: rgba(53, 195, 122, 0.14); color: var(--accent); border: 1px solid rgba(53, 195, 122, 0.5); }
-    .bb-result-tag.loss { background: rgba(224, 76, 76, 0.14); color: var(--err); border: 1px solid rgba(224, 76, 76, 0.5); }
-    .bb-result-tag.push { background: rgba(139, 147, 161, 0.14); color: var(--muted); border: 1px solid rgba(139, 147, 161, 0.5); }
-    .bb-result-list { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; }
+    .bb-result-type { font-size: 12px; color: var(--muted); }
+    .bb-result-pick { font-family: var(--mono) !important; font-size: 13px; }
+    .bb-result-pick .odds { color: var(--muted); margin-left: 6px; }
+    .bb-result-tag { font-family: var(--mono) !important; font-size: 12px; }
+    .bb-result-tag.win { color: var(--pos); }
+    .bb-result-tag.loss { color: var(--neg); }
+    .bb-result-tag.push { color: var(--muted); }
 
-    .bb-glossary { max-width: 900px; margin: 44px auto 0 auto; border-top: 1px solid var(--card-border); padding-top: 24px; }
-    .bb-glossary h2 { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
-    .bb-glossary-item { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; scroll-margin-top: 20px; }
-    .bb-glossary-item.error-item { border-color: rgba(224, 76, 76, 0.35); }
-    .bb-glossary-item h3 { font-size: 14px; margin: 0 0 6px 0; color: var(--text); }
-    .bb-glossary-item .bb-qualifies { font-size: 13px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
-    .bb-glossary-item .bb-track-record { font-size: 13px; color: var(--accent); font-weight: 600; }
-    .bb-glossary-item.error-item .bb-track-record { color: var(--err); }
+    /* ---- glossary ---- */
+    .bb-glossary { max-width: 1080px; margin: 34px auto 0 auto; border-top: 2px solid var(--rule); padding-top: 16px; }
+    .bb-glossary h2 { font-family: var(--display) !important; font-weight: 700; font-size: 24px; color: var(--text); margin: 0 0 10px 0; }
+    .bb-glossary-item {
+        display: grid; grid-template-columns: 172px minmax(0, 1fr) 150px;
+        gap: 16px; align-items: baseline; padding: 7px 0; scroll-margin-top: 20px;
+    }
+    .bb-glossary-item h3 { font-size: 13px; font-weight: 600; margin: 0; color: var(--text); }
+    .bb-glossary-item.error-item h3 { color: var(--caution); }
+    .bb-qualifies { font-size: 12px; line-height: 1.5; color: var(--muted); }
+    .bb-track-record { font-family: var(--mono) !important; font-size: 12px; color: var(--pos); text-align: right; }
+    .bb-glossary-item.error-item .bb-track-record { color: var(--caution); }
     </style>
     """,
     unsafe_allow_html=True,
@@ -324,61 +317,83 @@ def _pick_display(row: pd.Series) -> tuple[str, str, str]:
     return pick, line if line else "&mdash;", odds
 
 
+# Each badge label's headline ROI, shown inline on the pick row so the
+# track record is visible without opening the glossary.
+FLAG_ROI = {
+    "Home Favorite ML": "+22.9%",
+    "Warm Outdoor Total": "+15.0%",
+    "Graded B": "+11.5%",
+    "Big Edge": "+9.1%",
+    "Medium Edge": "+5.2%",
+    "Graded A": "+2.1%",
+}
+
+COLUMN_HEADS = [
+    ("Matchup", ""),
+    ("Kickoff", ""),
+    ("Pick", ""),
+    ("Odds", "text-align: right;"),
+    ("Grade", "text-align: right;"),
+    ("Sim", "text-align: right;"),
+    ("Edge", "text-align: right;"),
+    ("Segment, and its record", ""),
+]
+
+
 def build_card_html(row: pd.Series, is_starred: bool) -> str:
+    """One pick, rendered as a single dense row."""
     is_error = row["_edge_num"] is not None and abs(row["_edge_num"]) >= ERROR_EDGE_THRESHOLD
 
-    card_classes = "bb-card"
-    if is_starred:
-        card_classes += " starred"
-    elif row["_flags"]:
-        card_classes += " double"
-    if is_error:
-        card_classes += " flagged"
+    row_classes = "bb-row starred" if is_starred else "bb-row"
 
-    badges_html = ""
+    # Dome and Temperature ride along under the matchup rather than taking
+    # their own columns, since they only exist on some rows.
+    context_bits = []
+    dome = str(row.get("Dome (Y/N)", "")).strip()
+    temp = str(row.get("Temperature (F)", "")).strip()
+    if dome:
+        context_bits.append(f"Dome {dome}")
+    if temp:
+        context_bits.append(f"{temp}&deg;F")
+    subline = f'<div class="bb-subline">{" &nbsp; ".join(context_bits)}</div>' if context_bits else ""
+    topline = '<div class="bb-topline">Strongest pick on the board</div>' if is_starred else ""
+
+    seg_lines = ""
     for label in row["_flags"]:
         slug = GLOSSARY[label][0]
-        badges_html += f'<a href="#{slug}" class="bb-badge gold">{label}</a>'
+        roi = FLAG_ROI.get(label, "")
+        roi_html = f'<span class="roi">{roi}</span>' if roi else ""
+        seg_lines += (
+            f'<div class="bb-seg-line">'
+            f'<a href="#{slug}" class="bb-seg-name">{label}</a>{roi_html}</div>'
+        )
     if is_error:
         slug = GLOSSARY["Potential Sportsline Error"][0]
-        badges_html += f'<a href="#{slug}" class="bb-badge warn">⚠ Error?</a>'
+        seg_lines += f'<div class="bb-seg-line"><a href="#{slug}" class="bb-caution">Check this row</a></div>'
 
     grade = str(row.get("Grade", "")).strip()
-    grade_class = "bb-grade-a" if grade.upper() == "A" else "bb-grade-b" if grade.upper() == "B" else ""
     sim_prob = row.get("Sim Probability", "")
     edge_display = row.get("Edge %", "")
     pick_side, pick_number, pick_odds = _pick_display(row)
 
-    extra_fields = ""
-    dome = str(row.get("Dome (Y/N)", "")).strip()
-    temp = str(row.get("Temperature (F)", "")).strip()
-    if dome:
-        extra_fields += f'<div class="bb-stat"><div class="bb-stat-label">Dome</div><div class="bb-stat-value">{dome}</div></div>'
-    if temp:
-        extra_fields += f'<div class="bb-stat"><div class="bb-stat-label">Temp</div><div class="bb-stat-value">{temp}°F</div></div>'
+    # Total rows read "Over 39.5"; Moneyline rows are just the team name.
+    if str(row.get("Bet Type", "")) == "Moneyline":
+        pick_text = pick_number
+    else:
+        pick_text = f"{pick_side.title()} {pick_number}"
 
-    star_tag = '<div class="bb-star-tag">&#9733; LOVE THIS ONE</div>' if is_starred else ""
-
-    lines = [
-        f'<div class="{card_classes}">',
-        star_tag,
-        f'<div class="bb-matchup">{row.get("Away Team", "")} @ {row.get("Home Team", "")}</div>',
-        f'<div class="bb-meta">{_meta_display(row)}</div>',
-        '<div class="bb-pick-row">',
-        f'<span class="bb-pick-side">{pick_side}</span>',
-        f'<span class="bb-pick-number">{pick_number}</span>',
-        f'<span class="bb-pick-odds">{pick_odds}</span>',
+    return "".join([
+        f'<div class="{row_classes}">',
+        f'<div><div class="bb-matchup">{row.get("Away Team", "")} at {row.get("Home Team", "")}</div>{topline}{subline}</div>',
+        f'<div class="bb-kick">{_meta_display(row)}</div>',
+        f'<div class="bb-pick">{pick_text}</div>',
+        f'<div class="bb-num dim">{pick_odds}</div>',
+        f'<div class="bb-num">{grade}</div>',
+        f'<div class="bb-num">{sim_prob}%</div>',
+        f'<div class="bb-num">{edge_display}</div>',
+        f'<div class="bb-seg">{seg_lines}</div>',
         "</div>",
-        '<div class="bb-stats">',
-        f'<div class="bb-stat"><div class="bb-stat-label">Grade</div><div class="bb-stat-value {grade_class}">{grade}</div></div>',
-        f'<div class="bb-stat"><div class="bb-stat-label">Sim</div><div class="bb-stat-value">{sim_prob}%</div></div>',
-        f'<div class="bb-stat"><div class="bb-stat-label">Edge</div><div class="bb-stat-value">{edge_display}%</div></div>',
-        extra_fields,
-        "</div>",
-        f'<div class="bb-badges">{badges_html}</div>',
-        "</div>",
-    ]
-    return "".join(lines)
+    ])
 
 
 def build_section_html(section_name: str, section_df: pd.DataFrame, star_key) -> str:
@@ -387,19 +402,22 @@ def build_section_html(section_name: str, section_df: pd.DataFrame, star_key) ->
         f"<h2>{section_name}</h2>",
     ]
     if section_df.empty:
-        message = f"No qualifying {section_name} bets this week."
+        message = f"Nothing qualifies in {section_name} this week."
         if section_name == "Spread":
-            message += (
-                " No validated Spread segment exists yet, every Spread pattern "
-                "tested so far failed the season-by-season re-check."
+            message = (
+                "Nothing qualifies. No spread pattern has survived the "
+                "season-by-season re-check, so the model has no validated "
+                "spread segment to draw from."
             )
         parts.append(f'<div class="bb-empty-state">{message}</div>')
     else:
-        parts.append('<div class="bb-grid">')
+        heads = "".join(
+            f'<div style="{style}">{label}</div>' for label, style in COLUMN_HEADS
+        )
+        parts.append(f'<div class="bb-colhead">{heads}</div>')
         for _, row in section_df.iterrows():
             row_key = (row["Away Team"], row["Home Team"], row["Bet Type"])
             parts.append(build_card_html(row, is_starred=(row_key == star_key)))
-        parts.append("</div>")
     parts.append("</div>")
     return "".join(parts)
 
@@ -444,20 +462,20 @@ def build_results_html(completed_df: pd.DataFrame) -> str:
             pick_text += f" {line}"
         rows_html += "".join([
             '<div class="bb-result-row">',
-            f'<div class="bb-result-matchup">{row.get("Away Team", "")} @ {row.get("Home Team", "")}</div>',
+            f'<div>{row.get("Away Team", "")} at {row.get("Home Team", "")}</div>',
             f'<div class="bb-result-type">{row.get("Bet Type", "")}</div>',
             f'<div class="bb-result-pick">{pick_text}<span class="odds">{row.get("Odds", "")}</span></div>',
-            f'<div class="bb-result-stat">Grade <b>{str(row.get("Grade", "")).strip()}</b></div>',
-            f'<div class="bb-result-stat">Edge <b>{row.get("Edge %", "")}%</b></div>',
+            f'<div class="bb-num">{str(row.get("Grade", "")).strip()}</div>',
+            f'<div class="bb-num">{row.get("Edge %", "")}</div>',
             f'<div class="bb-result-tag {result.lower()}">{result}</div>',
             "</div>",
         ])
 
     return "".join([
         '<div class="bb-results">',
-        "<h2>Completed Picks</h2>",
-        f'<div class="bb-results-summary">Record: {wins}-{losses}-{pushes} (W-L-P) &nbsp;·&nbsp; '
-        f'Return: <span class="{sign_class}">{total_units:+.2f} units ({pct:+.1f}%)</span></div>',
+        "<h2>Completed picks</h2>",
+        f'<div class="bb-results-summary">{wins}-{losses}-{pushes} &nbsp;&nbsp; '
+        f'<span class="{sign_class}">{total_units:+.2f} units &nbsp; {pct:+.1f}%</span></div>',
         f'<div class="bb-result-list">{rows_html}</div>',
         "</div>",
     ])
@@ -469,8 +487,9 @@ def build_glossary_html(used_labels: list[str]) -> str:
     items_html = ""
     for label in used_labels:
         slug, qualifies, track_record = GLOSSARY[label]
-        error_class = " error-item" if label == "Potential Sportsline Error" else ""
-        heading = f"⚠ {label}" if label == "Potential Sportsline Error" else label
+        is_error = label == "Potential Sportsline Error"
+        error_class = " error-item" if is_error else ""
+        heading = "Check this row" if is_error else label
         items_html += "".join([
             f'<div class="bb-glossary-item{error_class}" id="{slug}">',
             f"<h3>{heading}</h3>",
@@ -480,15 +499,16 @@ def build_glossary_html(used_labels: list[str]) -> str:
         ])
     return "".join([
         '<div class="bb-glossary">',
-        "<h2>Why These Picks Are Here</h2>",
+        "<h2>Why these picks are here</h2>",
         items_html,
         "</div>",
     ])
 
 
-st.title("Best Bets")
-
-col_title, col_button = st.columns([5, 1])
+# The page title is drawn as part of the custom header below, not by
+# st.title(), so the whole page renders in one visual language instead of
+# Streamlit's default styling sitting on top of the custom markup.
+_, col_button = st.columns([6, 1])
 with col_button:
     if st.button("Refresh now"):
         load_best_bets_and_meta.clear()
@@ -563,16 +583,23 @@ else:
     now_et = datetime.now(ZoneInfo("America/New_York"))
     next_read_dt = next_wednesday_8pm_et(now_et)
 
-    last_read_str = modified_dt_et.strftime("%a, %b %-d, %Y · %-I:%M %p ET")
-    next_read_str = next_read_dt.strftime("%a, %b %-d, %Y")
+    last_read_str = modified_dt_et.strftime("%m.%d.%y %-I:%M %p ET")
+    next_read_str = next_read_dt.strftime("%m.%d.%y")
 
-    week_label = f"NFL Week {int(current_week)}" if pd.notna(current_week) else "No games this season yet"
-    st.caption(f"{week_label} · top 4 per bet type · ranked by historical segment strength")
-    st.markdown(
-        f'<p style="margin-top: -8px; color: #5c6472; font-size: 13px;">'
-        f"Last Read: {last_read_str} &nbsp;|&nbsp; Next Read: {next_read_str}</p>",
-        unsafe_allow_html=True,
-    )
+    week_label = f"Week {int(current_week)}" if pd.notna(current_week) else "No games this season yet"
+    header_html = "".join([
+        '<div class="bb-head">',
+        '<div>',
+        "<h1>Best Bets</h1>",
+        f'<div class="bb-sub">{week_label}, top four per bet type, '
+        "ranked by how the segment has actually performed</div>",
+        "</div>",
+        '<div class="bb-stamp">',
+        f"<div>READ {last_read_str}</div>",
+        f'<div class="next">NEXT {next_read_str}</div>',
+        "</div>",
+        "</div>",
+    ])
 
     sections_html = "".join(
         build_section_html(name, section_dfs[name], star_key) for name in SECTIONS
@@ -592,6 +619,7 @@ else:
     glossary_html = build_glossary_html(used_labels)
 
     st.markdown(
-        f'<div class="bb-wrap">{sections_html}</div>{results_html}{glossary_html}',
+        f'<div class="bb-wrap">{header_html}{sections_html}</div>'
+        f"{results_html}{glossary_html}",
         unsafe_allow_html=True,
     )
